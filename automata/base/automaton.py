@@ -48,22 +48,22 @@ class Automaton(metaclass=abc.ABCMeta):
         """Raise an error if the initial state is invalid."""
         if self.initial_state not in self.states:
             raise exceptions.InvalidStateError(
-                '{} is not a valid initial state'.format(self.initial_state))
+                f'{self.initial_state} is not a valid initial state'
+            )
 
     def _validate_initial_state_transitions(self):
         """Raise an error if the initial state has no transitions defined."""
         if self.initial_state not in self.transitions and len(self.states) > 1:
             raise exceptions.MissingStateError(
-                'initial state {} has no transitions defined'.format(
-                    self.initial_state))
+                f'initial state {self.initial_state} has no transitions defined'
+            )
 
     def _validate_final_states(self):
         """Raise an error if any final states are invalid."""
-        invalid_states = self.final_states - self.states
-        if invalid_states:
+        if invalid_states := self.final_states - self.states:
             raise exceptions.InvalidStateError(
-                'final states are not valid ({})'.format(
-                    ', '.join(str(state) for state in invalid_states)))
+                f"final states are not valid ({', '.join(str(state) for state in invalid_states)})"
+            )
 
     def copy(self):
         """Create a deep copy of the automaton."""

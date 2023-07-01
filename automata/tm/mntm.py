@@ -49,15 +49,13 @@ class MNTM(tm.NTM):
                             symbol]:
             if tape_symbol not in self.tape_symbols:
                 raise exceptions.InvalidSymbolError(
-                    'transition symbol {} for state {} is not valid'.format(
-                        tape_symbol, state
-                    )
+                    f'transition symbol {tape_symbol} for state {state} is not valid'
                 )
 
     def _validate_transition_state(self, transition_state):
         if transition_state not in self.states:
             raise exceptions.InvalidStateError(
-                'transition state is not valid ({})'.format(transition_state)
+                f'transition state is not valid ({transition_state})'
             )
 
     def _validate_transition_results(self, paths):
@@ -73,29 +71,14 @@ class MNTM(tm.NTM):
         for state in self.transitions:
             for read_tape_symbols in self.transitions[state]:
                 if len(read_tape_symbols) != self.n_tapes:
-                    error = (
-                        'tapes symbols {} inconsistent with the number of '
-                        'tapes defined. Expected {} symbols, got {}'
-                    ).format(
-                        read_tape_symbols,
-                        self.n_tapes,
-                        len(read_tape_symbols)
-                    )
+                    error = f'tapes symbols {read_tape_symbols} inconsistent with the number of tapes defined. Expected {self.n_tapes} symbols, got {len(read_tape_symbols)}'
                     raise tm_exceptions.InconsistentTapesException(
                         error
                     )
                 for transition in self.transitions[state][read_tape_symbols]:
                     _, moves = transition
                     if len(moves) != self.n_tapes:
-                        error = (
-                            'transition {} has inconsistent operations on '
-                            'tapes. Expected {} write/move operations, '
-                            'got {}'
-                        ).format(
-                            transition,
-                            self.n_tapes,
-                            len(moves)
-                        )
+                        error = f'transition {transition} has inconsistent operations on tapes. Expected {self.n_tapes} write/move operations, got {len(moves)}'
                         raise tm_exceptions.InconsistentTapesException(
                             error
                         )
@@ -136,13 +119,10 @@ class MNTM(tm.NTM):
     def _get_next_configuration(self, old_config):
         """Advances to the next configuration."""
         self.current_state, moves = old_config
-        i = 0
-        for tape, move in zip(self.tapes, moves):
+        for i, (tape, move) in enumerate(zip(self.tapes, moves)):
             symbol, direction = move
             self.tapes[i] = tape.write_symbol(symbol)
             self.tapes[i] = self.tapes[i].move(direction)
-            i += 1
-
         return self
 
     def _has_accepted(self):
@@ -188,15 +168,13 @@ class MNTM(tm.NTM):
         separators_found = 0
         for i, symbol in enumerate(tape):
             if symbol == head_symbol:
-                if i - 1 < 0:
+                if i < 1:
                     raise tm_exceptions.MalformedExtendedTapeError(
                         'head symbol was found on leftmost end of the '
                         'extended tape'
                     )
-                else:
-                    previous_symbol = tape[i - 1]
-                    virtual_heads.append(previous_symbol)
-                    heads_found += 1
+                virtual_heads.append(tape[i - 1])
+                heads_found += 1
             elif symbol == tape_separator_symbol:
                 if heads_found == 0:
                     raise tm_exceptions.MalformedExtendedTapeError(
@@ -222,14 +200,14 @@ class MNTM(tm.NTM):
         """Simulates the machine as a single-tape Turing machine.
         Yields the configuration at each step."""
         self._restart_configuration(input_str)
-        head_symbol = '^'
         tape_separator_symbol = '_'
         extended_tape = ''
         tapes_copy = self.tapes.copy()
+        head_symbol = '^'
         for tape_copy in tapes_copy:
             tape_str = tape_copy.get_symbols_as_str()
             extended_tape += tape_str[0] + head_symbol + \
-                tape_str[1:] + tape_separator_symbol
+                    tape_str[1:] + tape_separator_symbol
 
         current_state = self.initial_state
         yield {
@@ -265,24 +243,23 @@ class MNTM(tm.NTM):
                             extended_tape[: i - 1] +
                             new_head + extended_tape[i:]
                         )
-                        extended_tape = extended_tape[:i] + \
-                            '' + extended_tape[i + 1:]
+                        extended_tape = f'{extended_tape[:i]}{extended_tape[i + 1:]}'
 
                         # After replacing, the machine must change the
                         # position of the virtual head of the current virtual
                         # tape.
-                        if direction == 'R':
-                            i += 1
-                        elif direction == 'L':
+                        if direction == 'L':
                             i -= 1
-                        else:  # direction == 'N'
+                        elif direction == 'R':
+                            i += 1
+                        else:
                             i += 0
 
                         if extended_tape[i - 1] == tape_separator_symbol:
                             i -= 1
                             extended_tape = extended_tape[:i] + \
-                                self.blank_symbol + \
-                                head_symbol + extended_tape[i:]
+                                    self.blank_symbol + \
+                                    head_symbol + extended_tape[i:]
 
                             i += 1
                         else:

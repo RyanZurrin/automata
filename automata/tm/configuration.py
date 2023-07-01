@@ -12,9 +12,7 @@ class TMConfiguration(collections.namedtuple(
 
     def __repr__(self):
         """Return a string representation of the configuration."""
-        return '{}(\'{}\', {})'.format(
-            self.__class__.__name__, self.state, self.tape
-        )
+        return f"{self.__class__.__name__}(\'{self.state}\', {self.tape})"
 
     def print(self):
         """Print the machine's current configuration in a readable form."""
@@ -37,15 +35,13 @@ class MTMConfiguration(collections.namedtuple(
 
     def __repr__(self):
         """Return a string representation of the configuration."""
-        return '{}(\'{}\', {})'.format(
-            self.__class__.__name__, self.state, self.tapes
-        )
+        return f"{self.__class__.__name__}(\'{self.state}\', {self.tapes})"
 
     def print(self):
         """Print the machine's current configuration in a readable form."""
-        description = '{}: \n'.format(self.state)
+        description = f'{self.state}: \n'
         for i, tape in enumerate(self.tapes):
-            title = '> Tape {}: '.format(i+1)
+            title = f'> Tape {i + 1}: '
             position = tape.current_position + len(title) + 1
             description += '> Tape {j}: {tape}\n{current_position}\n'.format(
                 j=i+1,

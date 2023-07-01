@@ -169,10 +169,10 @@ class TestDPDA(test_pda.TestPDA):
             states={'q0'},
             input_symbols=set(),
             stack_symbols={'0'},
-            transitions=dict(),
+            transitions={},
             initial_state='q0',
             initial_stack_symbol='0',
             final_states={'q0'},
-            acceptance_mode='both'
+            acceptance_mode='both',
         )
         self.assertTrue(dpda.accepts_input(''))

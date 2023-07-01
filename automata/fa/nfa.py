@@ -71,13 +71,13 @@ class NFA(fa.FA):
     @classmethod
     def from_dfa(cls, dfa):
         """Initialize this NFA as one equivalent to the given DFA."""
-        nfa_transitions = {}
-
-        for start_state, paths in dfa.transitions.items():
-            nfa_transitions[start_state] = {}
-            for input_symbol, end_state in paths.items():
-                nfa_transitions[start_state][input_symbol] = {end_state}
-
+        nfa_transitions = {
+            start_state: {
+                input_symbol: {end_state}
+                for input_symbol, end_state in paths.items()
+            }
+            for start_state, paths in dfa.transitions.items()
+        }
         return cls(
             states=dfa.states, input_symbols=dfa.input_symbols,
             transitions=nfa_transitions, initial_state=dfa.initial_state,
@@ -88,8 +88,8 @@ class NFA(fa.FA):
         for input_symbol in paths.keys():
             if input_symbol not in self.input_symbols and input_symbol != '':
                 raise exceptions.InvalidSymbolError(
-                    'state {} has invalid transition symbol {}'.format(
-                        start_state, input_symbol))
+                    f'state {start_state} has invalid transition symbol {input_symbol}'
+                )
 
     @classmethod
     def _from_symbol(cls, symbol, input_symbols=None):
@@ -118,7 +118,10 @@ class NFA(fa.FA):
                 break
             elif not isinstance(master_list[i], NFA):
                 i += 1
-            elif i != len(master_list) - 1 and not isinstance(master_list[i + 1], NFA) and master_list[i + 1] == '*':
+            elif (
+                not isinstance(master_list[i + 1], NFA)
+                and master_list[i + 1] == '*'
+            ):
                 master_list[i] = master_list[i].kleene_star()
                 master_list.pop(i + 1)
             else:
@@ -133,7 +136,7 @@ class NFA(fa.FA):
                 break
             elif not isinstance(master[i], NFA):
                 i += 1
-            elif i != len(master) - 1 and not isinstance(master[i + 1], NFA) and master[i + 1] == '?':
+            elif not isinstance(master[i + 1], NFA) and master[i + 1] == '?':
                 master[i] = master[i].option()
                 master.pop(i + 1)
             else:
@@ -148,7 +151,7 @@ class NFA(fa.FA):
                 break
             elif not isinstance(master_list[i], NFA):
                 i += 1
-            elif i != len(master_list) - 1 and isinstance(master_list[i + 1], NFA):
+            elif isinstance(master_list[i + 1], NFA):
                 master_list[i] = master_list[i].concatenate(master_list[i + 1])
                 master_list.pop(i + 1)
             else:
@@ -202,10 +205,14 @@ class NFA(fa.FA):
         while True:
             if i == len(master) - 1:
                 break
-            elif i != 0 and i != len(master) - 1 \
-                    and isinstance(master[i], NFA) \
-                    and not isinstance(master[i - 1], NFA) and master[i - 1] == '(' \
-                    and not isinstance(master[i + 1], NFA) and master[i + 1] == ')':
+            elif (
+                i != 0
+                and isinstance(master[i], NFA)
+                and not isinstance(master[i - 1], NFA)
+                and master[i - 1] == '('
+                and not isinstance(master[i + 1], NFA)
+                and master[i + 1] == ')'
+            ):
                 master.pop(i - 1)
                 master.pop(i)
                 i = i - 1
@@ -242,8 +249,6 @@ class NFA(fa.FA):
                     initial_length = len(master)
                 elif len(master) == initial_length:
                     break
-                else:
-                    pass
 
         def star_option_concatenate():
             initial_length = len(master)
@@ -255,8 +260,6 @@ class NFA(fa.FA):
                     initial_length = len(master)
                 elif len(master) == initial_length:
                     break
-                else:
-                    pass
 
         def star_option_concatenate_union():
             while True:
@@ -275,8 +278,8 @@ class NFA(fa.FA):
             for end_state in end_states:
                 if end_state not in self.states:
                     raise exceptions.InvalidStateError(
-                        'end state {} for transition on {} is '
-                        'not valid'.format(end_state, start_state))
+                        f'end state {end_state} for transition on {start_state} is not valid'
+                    )
 
     @staticmethod
     def _validate_regex(regex):
@@ -304,7 +307,7 @@ class NFA(fa.FA):
                     result = False
                 elif i < len(regex) - 1 and regex[i + 1] in {')', '|', '*', '?'}:
                     result = False
-                elif i == 0 or i == len(regex) - 1:
+                elif i in [0, len(regex) - 1]:
                     result = False
 
             if regex[i] == '(':
@@ -317,9 +320,7 @@ class NFA(fa.FA):
             result = False
 
         if not result:
-            raise exceptions.InvalidRegexError(
-                '{} is an invalid regular expression'.format(
-                    regex))
+            raise exceptions.InvalidRegexError(f'{regex} is an invalid regular expression')
 
     def validate(self):
         """Return True if this NFA is internally consistent."""
@@ -348,9 +349,9 @@ class NFA(fa.FA):
 
         for current_state in current_states:
             if current_state in self.transitions:
-                symbol_end_states = self.transitions[current_state].get(
-                    input_symbol)
-                if symbol_end_states:
+                if symbol_end_states := self.transitions[current_state].get(
+                    input_symbol
+                ):
                     for end_state in symbol_end_states:
                         next_current_states.update(
                             self._lambda_closure_dict[end_state])
@@ -363,9 +364,9 @@ class NFA(fa.FA):
 
         for current_state in current_states:
             if current_state in self.transitions:
-                symbol_end_states = self.transitions[current_state].get(
-                    input_symbol)
-                if symbol_end_states:
+                if symbol_end_states := self.transitions[current_state].get(
+                    input_symbol
+                ):
                     next_current_states.update(symbol_end_states)
 
         return next_current_states
@@ -408,7 +409,7 @@ class NFA(fa.FA):
                 del self.transitions[state][input_symbol]
 
         for state in list(self.transitions.keys()):
-            if self.transitions[state] == dict():
+            if self.transitions[state] == {}:
                 del self.transitions[state]
 
     def eliminate_lambda(self):
@@ -418,7 +419,7 @@ class NFA(fa.FA):
             for input_symbol in self.input_symbols:
                 next_current_states = self._get_next_current_states2(lambda_enclosure, input_symbol)
                 if state not in self.transitions:
-                    self.transitions[state] = dict()
+                    self.transitions[state] = {}
                 if input_symbol in self.transitions[state]:
                     self.transitions[state][input_symbol].update(next_current_states)
                 else:
@@ -435,8 +436,8 @@ class NFA(fa.FA):
         """Raise an error if the given config indicates rejected input."""
         if not (current_states & self.final_states):
             raise exceptions.RejectionException(
-                'the NFA stopped on all non-final states ({})'.format(
-                    ', '.join(str(state) for state in current_states)))
+                f"the NFA stopped on all non-final states ({', '.join(str(state) for state in current_states)})"
+            )
 
     def read_input_stepwise(self, input_str):
         """
@@ -492,7 +493,7 @@ class NFA(fa.FA):
         (state_map_a, state_map_b) = NFA._get_state_maps(self.states, other.states, start=1)
 
         new_states = set(state_map_a.values()) | set(state_map_b.values()) | {0}
-        new_transitions = {state: dict() for state in new_states}
+        new_transitions = {state: {} for state in new_states}
 
         # Connect new initial state to both branch
         new_transitions[0] = {'': {state_map_a[self.initial_state], state_map_b[other.initial_state]}}
@@ -526,7 +527,7 @@ class NFA(fa.FA):
         (state_map_a, state_map_b) = NFA._get_state_maps(self.states, other.states)
 
         new_states = set(state_map_a.values()) | set(state_map_b.values())
-        new_transitions = {state: dict() for state in new_states}
+        new_transitions = {state: {} for state in new_states}
 
         # Transitions of self
         NFA._load_new_transition_dict(state_map_a, self.transitions, new_transitions)
@@ -571,7 +572,7 @@ class NFA(fa.FA):
         # transition to the old initial state
         for state in self.final_states:
             if state not in new_transitions:
-                new_transitions[state] = dict()
+                new_transitions[state] = {}
             if '' not in new_transitions[state]:
                 new_transitions[state][''] = set()
             new_transitions[state][''].add(self.initial_state)
@@ -617,22 +618,14 @@ class NFA(fa.FA):
         new_states = set(self.states)
         new_initial_state = NFA._add_new_state(new_states)
 
-        # Transitions are the same except reversed
-        new_transitions = dict()
-        for state in new_states:
-            new_transitions[state] = dict()
+        new_transitions = {state: {} for state in new_states}
         for state_a, transitions in self.transitions.items():
             for symbol, states in transitions.items():
                 for state_b in states:
                     if symbol not in new_transitions[state_b]:
                         new_transitions[state_b][symbol] = set()
                     new_transitions[state_b][symbol].add(state_a)
-        new_transitions[new_initial_state][''] = set()
-        # And we additionally have epsilon transitions from
-        # new initial state to each old final state.
-        for state in self.final_states:
-            new_transitions[new_initial_state][''].add(state)
-
+        new_transitions[new_initial_state][''] = set(self.final_states)
         new_final_states = {self.initial_state}
 
         return self.__class__(

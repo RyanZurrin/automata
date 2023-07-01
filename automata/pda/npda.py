@@ -85,13 +85,13 @@ class NPDA(pda.PDA):
 
         Yield the NPDA's current configurations at each step.
         """
-        current_configurations = set()
-        current_configurations.add(PDAConfiguration(
-            self.initial_state,
-            input_str,
-            PDAStack([self.initial_stack_symbol])
-        ))
-
+        current_configurations = {
+            PDAConfiguration(
+                self.initial_state,
+                input_str,
+                PDAStack([self.initial_stack_symbol]),
+            )
+        }
         yield current_configurations
 
         while current_configurations:

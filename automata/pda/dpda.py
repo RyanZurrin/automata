@@ -93,33 +93,23 @@ class DPDA(pda.PDA):
         ))
         if None in transitions:
             transitions.remove(None)
-        if len(transitions) == 0:
+        if not transitions:
             raise exceptions.RejectionException(
-                'The automaton entered a configuration for which no '
-                'transition is defined ({}, {}, {})'.format(
-                    old_config.state,
-                    old_config.remaining_input[0],
-                    old_config.stack.top()
-                )
+                f'The automaton entered a configuration for which no transition is defined ({old_config.state}, {old_config.remaining_input[0]}, {old_config.stack.top()})'
             )
         if len(transitions) > 1:
             raise pda_exceptions.NondeterminismError(
-                'The automaton entered a configuration for which more'
-                'than one transition is defined ({}, {}'.format(
-                    old_config.state,
-                    old_config.stack.top()
-                )
+                f'The automaton entered a configuration for which morethan one transition is defined ({old_config.state}, {old_config.stack.top()}'
             )
         input_symbol, new_state, new_stack_top = transitions.pop()
         remaining_input = old_config.remaining_input
         if input_symbol:
             remaining_input = remaining_input[1:]
-        new_config = PDAConfiguration(
+        return PDAConfiguration(
             new_state,
             remaining_input,
-            self._replace_stack_top(old_config.stack, new_stack_top)
+            self._replace_stack_top(old_config.stack, new_stack_top),
         )
-        return new_config
 
     def read_input_stepwise(self, input_str):
         """

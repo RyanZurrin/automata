@@ -30,7 +30,7 @@ def _validate(regex):
                 return False
             elif i < len(regex) - 1 and regex[i + 1] in {')', '|', '*', '?'}:
                 return False
-            elif i == 0 or i == len(regex) - 1:
+            elif i in [0, len(regex) - 1]:
                 return False
 
         if regex[i] == '(':
@@ -38,19 +38,14 @@ def _validate(regex):
                 return False
         if i == 0 and regex[i] == '?':
             return False
-    if stack1 != 0:
-        return False
-    else:
-        return True
+    return stack1 == 0
 
 
 def validate(regex):
     """Raise an error if the regular expression is invalid"""
 
     if not _validate(regex):
-        raise exceptions.InvalidRegexError(
-            '{} is an invalid regular expression'.format(
-                regex))
+        raise exceptions.InvalidRegexError(f'{regex} is an invalid regular expression')
     return True
 
 

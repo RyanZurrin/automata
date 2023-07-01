@@ -348,9 +348,17 @@ class TestNFA(test_fa.TestFA):
         nfa1 = NFA.from_regex('a*b')
         nfa1 = nfa1.option()
         self.assertTrue(nfa1.accepts_input('aab'))
-        self.assertTrue(nfa1.initial_state in nfa1.final_states
-                        and nfa1.initial_state
-                        not in sum([list(nfa1.transitions[state].values()) for state in nfa1.transitions.keys()], []))
+        self.assertTrue(
+            nfa1.initial_state in nfa1.final_states
+            and nfa1.initial_state
+            not in sum(
+                (
+                    list(nfa1.transitions[state].values())
+                    for state in nfa1.transitions.keys()
+                ),
+                [],
+            )
+        )
 
     def test_union(self):
         nfa1 = NFA.from_regex('ab*')

@@ -9,18 +9,12 @@ class PDAStack(collections.namedtuple('PDAStack', ['stack'])):
 
     def __new__(cls, *elements):
         """Create the new PDA stack."""
-        if len(elements) == 1:
-            stack = tuple(elements[0])
-        else:
-            stack = elements
+        stack = tuple(elements[0]) if len(elements) == 1 else elements
         return super(PDAStack, cls).__new__(cls, stack)
 
     def top(self):
         """Return the symbol at the top of the stack."""
-        if self.stack:
-            return self.stack[-1]
-        else:
-            return ''
+        return self.stack[-1] if self.stack else ''
 
     def pop(self):
         """
@@ -54,4 +48,4 @@ class PDAStack(collections.namedtuple('PDAStack', ['stack'])):
 
     def __repr__(self):
         """Return a string representation of the stack."""
-        return '{}{}'.format(self.__class__.__name__, self.stack)
+        return f'{self.__class__.__name__}{self.stack}'

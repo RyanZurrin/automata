@@ -155,16 +155,16 @@ class DFA(fa.FA):
         for input_symbol in self.input_symbols:
             if input_symbol not in paths:
                 raise exceptions.MissingSymbolError(
-                    'state {} is missing transitions for symbol {}'.format(
-                        start_state, input_symbol))
+                    f'state {start_state} is missing transitions for symbol {input_symbol}'
+                )
 
     def _validate_transition_invalid_symbols(self, start_state, paths):
         """Raise an error if transition input symbols are invalid."""
         for input_symbol in paths.keys():
             if input_symbol not in self.input_symbols:
                 raise exceptions.InvalidSymbolError(
-                    'state {} has invalid transition symbol {}'.format(
-                        start_state, input_symbol))
+                    f'state {start_state} has invalid transition symbol {input_symbol}'
+                )
 
     def _validate_transition_start_states(self):
         """Raise an error if transition start states are missing."""
@@ -173,16 +173,16 @@ class DFA(fa.FA):
         for state in self.states:
             if state not in self.transitions:
                 raise exceptions.MissingStateError(
-                    'transition start state {} is missing'.format(
-                        state))
+                    f'transition start state {state} is missing'
+                )
 
     def _validate_transition_end_states(self, start_state, paths):
         """Raise an error if transition end states are invalid."""
         for end_state in paths.values():
             if end_state not in self.states:
                 raise exceptions.InvalidStateError(
-                    'end state {} for transition on {} is not valid'.format(
-                        end_state, start_state))
+                    f'end state {end_state} for transition on {start_state} is not valid'
+                )
 
     def _validate_transitions(self, start_state, paths):
         """Raise an error if transitions are missing or invalid."""
@@ -209,14 +209,15 @@ class DFA(fa.FA):
             return self.transitions[current_state][input_symbol]
         else:
             raise exceptions.RejectionException(
-                '{} is not a valid input symbol'.format(input_symbol))
+                f'{input_symbol} is not a valid input symbol'
+            )
 
     def _check_for_input_rejection(self, current_state):
         """Raise an error if the given config indicates rejected input."""
         if current_state not in self.final_states:
             raise exceptions.RejectionException(
-                'the DFA stopped on a non-final state ({})'.format(
-                    current_state))
+                f'the DFA stopped on a non-final state ({current_state})'
+            )
 
     def read_input_stepwise(self, input_str):
         """
@@ -281,9 +282,9 @@ class DFA(fa.FA):
             )
         eq_classes = set(eq_classes)
 
-        processing = set([frozenset(self.final_states)])
+        processing = {frozenset(self.final_states)}
 
-        while len(processing) > 0:
+        while processing:
             active_state = processing.pop()
             for active_letter in self.input_symbols:
                 states_that_move_into_active_state = frozenset(
@@ -403,9 +404,7 @@ class DFA(fa.FA):
             if (state_a in self.final_states or state_b in other.final_states)
         }
 
-        if minify:
-            return new_dfa.minify(retain_names=retain_names)
-        return new_dfa
+        return new_dfa.minify(retain_names=retain_names) if minify else new_dfa
 
     def intersection(self, other, *, retain_names=False, minify=True):
         """
@@ -420,9 +419,7 @@ class DFA(fa.FA):
             for state_a, state_b in product(self.final_states, other.final_states)
         }
 
-        if minify:
-            return new_dfa.minify(retain_names=retain_names)
-        return new_dfa
+        return new_dfa.minify(retain_names=retain_names) if minify else new_dfa
 
     def difference(self, other, *, retain_names=False, minify=True):
         """
@@ -437,9 +434,7 @@ class DFA(fa.FA):
             for state_a, state_b in product(self.final_states, other.states - other.final_states)
         }
 
-        if minify:
-            return new_dfa.minify(retain_names=retain_names)
-        return new_dfa
+        return new_dfa.minify(retain_names=retain_names) if minify else new_dfa
 
     def symmetric_difference(self, other, *, retain_names=False, minify=True):
         """
@@ -454,9 +449,7 @@ class DFA(fa.FA):
             if (state_a in self.final_states) ^ (state_b in other.final_states)
         }
 
-        if minify:
-            return new_dfa.minify(retain_names=retain_names)
-        return new_dfa
+        return new_dfa.minify(retain_names=retain_names) if minify else new_dfa
 
     def complement(self):
         """Return the complement of this DFA."""
@@ -484,12 +477,10 @@ class DFA(fa.FA):
 
     def issubset(self, other):
         """Return True if this DFA is a subset of another DFA."""
-        for (state_a, state_b) in self._get_reachable_states_product_graph(other):
-            # Check for reachable state that is counterexample to subset
-            if state_a in self.final_states and state_b not in other.final_states:
-                return False
-
-        return True
+        return not any(
+            state_a in self.final_states and state_b not in other.final_states
+            for state_a, state_b in self._get_reachable_states_product_graph(other)
+        )
 
     def issuperset(self, other):
         """Return True if this DFA is a superset of another DFA."""
@@ -497,12 +488,10 @@ class DFA(fa.FA):
 
     def isdisjoint(self, other):
         """Return True if this DFA has no common elements with another DFA."""
-        for (state_a, state_b) in self._get_reachable_states_product_graph(other):
-            # Check for reachable state that is counterexample to disjointness
-            if state_a in self.final_states and state_b in other.final_states:
-                return False
-
-        return True
+        return not any(
+            state_a in self.final_states and state_b in other.final_states
+            for state_a, state_b in self._get_reachable_states_product_graph(other)
+        )
 
     def isempty(self):
         """Return True if this DFA is completely empty."""
@@ -544,7 +533,7 @@ class DFA(fa.FA):
         """Initialize this DFA as one equivalent to the given NFA."""
         dfa_states = set()
         dfa_symbols = target_nfa.input_symbols
-        dfa_transitions = dict()
+        dfa_transitions = {}
 
         # equivalent DFA states states
         nfa_initial_states = target_nfa._get_lambda_closure(target_nfa.initial_state)

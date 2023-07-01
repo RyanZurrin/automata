@@ -49,12 +49,10 @@ class TMTape(collections.namedtuple(
         # Copy stuff.
         new_tape = list(self.tape)
         new_position = self.current_position
-        if direction == 'R':
-            new_position += 1
-        elif direction == 'N':
-            pass
-        elif direction == 'L':  # pragma: no branch
+        if direction == 'L':
             new_position -= 1
+        elif direction == 'R':
+            new_position += 1
         # Make sure that the cursor doesn't run off the end of the tape.
         if new_position == -1:
             new_tape.insert(0, self.blank_symbol)
@@ -85,6 +83,4 @@ class TMTape(collections.namedtuple(
 
     def __repr__(self):
         """Return a string representation of the tape."""
-        return '{}(\'{}\', {})'.format(
-            self.__class__.__name__, ''.join(self.tape), self.current_position
-        )
+        return f"{self.__class__.__name__}(\'{''.join(self.tape)}\', {self.current_position})"

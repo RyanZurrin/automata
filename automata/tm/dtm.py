@@ -29,29 +29,32 @@ class DTM(tm.TM):
     def _validate_transition_state(self, transition_state):
         if transition_state not in self.states:
             raise exceptions.InvalidStateError(
-                'transition state is not valid ({})'.format(transition_state))
+                f'transition state is not valid ({transition_state})'
+            )
 
     def _validate_transition_symbols(self, state, paths):
         for tape_symbol in paths.keys():
             if tape_symbol not in self.tape_symbols:
                 raise exceptions.InvalidSymbolError(
-                    'transition symbol {} for state {} is not valid'.format(
-                        tape_symbol, state))
+                    f'transition symbol {tape_symbol} for state {state} is not valid'
+                )
 
     def _validate_transition_result_direction(self, result_direction):
         if result_direction not in ('L', 'N', 'R'):
             raise tm_exceptions.InvalidDirectionError(
-                'result direction is not valid ({})'.format(
-                    result_direction))
+                f'result direction is not valid ({result_direction})'
+            )
 
     def _validate_transition_result(self, result):
         result_state, result_symbol, result_direction = result
         if result_state not in self.states:
             raise exceptions.InvalidStateError(
-                'result state is not valid ({})'.format(result_state))
+                f'result state is not valid ({result_state})'
+            )
         if result_symbol not in self.tape_symbols:
             raise exceptions.InvalidSymbolError(
-                'result symbol is not valid ({})'.format(result_symbol))
+                f'result symbol is not valid ({result_symbol})'
+            )
         self._validate_transition_result_direction(result_direction)
 
     def _validate_transition_results(self, paths):
@@ -68,8 +71,8 @@ class DTM(tm.TM):
         for final_state in self.final_states:
             if final_state in self.transitions:
                 raise exceptions.FinalStateError(
-                    'final state {} has transitions defined'.format(
-                        final_state))
+                    f'final state {final_state} has transitions defined'
+                )
 
     def validate(self):
         """Return True if this DTM is internally consistent."""
@@ -103,11 +106,10 @@ class DTM(tm.TM):
         )}
         if None in transitions:
             transitions.remove(None)
-        if len(transitions) == 0:
+        if not transitions:
             raise exceptions.RejectionException(
-                'The machine entered a non-final configuration for which no '
-                'transition is defined ({}, {})'.format(
-                    old_config.state, old_config.tape.read_symbol()))
+                f'The machine entered a non-final configuration for which no transition is defined ({old_config.state}, {old_config.tape.read_symbol()})'
+            )
         tape = old_config.tape
         (new_state, new_tape_symbol,
             direction) = transitions.pop()

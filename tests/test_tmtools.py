@@ -54,8 +54,7 @@ class TestTMTools(unittest.TestCase):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             self.config.print()
-        self.assertEqual(out.getvalue().rstrip(), '{}: {}\n{}'.format(
-            'q2', 'abcdefghij', '^'.rjust(7)))
+        self.assertEqual(out.getvalue().rstrip(), f"q2: abcdefghij\n{'^'.rjust(7)}")
 
     @patch('automata.tm.configuration.TMConfiguration.print')
     def test_print_configs(self, print_config):

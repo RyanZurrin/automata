@@ -16,30 +16,30 @@ class PDA(Automaton, metaclass=abc.ABCMeta):
         """Raise an error if transition input symbols are invalid."""
         if input_symbol not in self.input_symbols and input_symbol != '':
             raise exceptions.InvalidSymbolError(
-                'state {} has invalid transition input symbol {}'.format(
-                    start_state, input_symbol))
+                f'state {start_state} has invalid transition input symbol {input_symbol}'
+            )
 
     def _validate_transition_invalid_stack_symbols(self, start_state,
                                                    stack_symbol):
         """Raise an error if transition stack symbols are invalid."""
         if stack_symbol not in self.stack_symbols:
             raise exceptions.InvalidSymbolError(
-                'state {} has invalid transition stack symbol {}'.format(
-                    start_state, stack_symbol))
+                f'state {start_state} has invalid transition stack symbol {stack_symbol}'
+            )
 
     def _validate_initial_stack_symbol(self):
         """Raise an error if initial stack symbol is invalid."""
         if self.initial_stack_symbol not in self.stack_symbols:
             raise exceptions.InvalidSymbolError(
-                'initial stack symbol {} is invalid'.format(
-                    self.initial_stack_symbol))
+                f'initial stack symbol {self.initial_stack_symbol} is invalid'
+            )
 
     def _validate_acceptance(self):
         """Raise an error if the acceptance mode is invalid."""
         if self.acceptance_mode not in ('final_state', 'empty_stack', 'both'):
             raise pda_exceptions.InvalidAcceptanceModeError(
-                'acceptance mode {} is invalid'.format(
-                    self.acceptance_mode))
+                f'acceptance mode {self.acceptance_mode} is invalid'
+            )
 
     def validate(self):
         """Return True if this PDA is internally consistent."""
@@ -59,11 +59,7 @@ class PDA(Automaton, metaclass=abc.ABCMeta):
 
     def _replace_stack_top(self, stack, new_stack_top):
         """Replace the top of the PDA stack with another symbol"""
-        if new_stack_top == '':
-            new_stack = stack.pop()
-        else:
-            new_stack = stack.replace(new_stack_top)
-        return new_stack
+        return stack.pop() if new_stack_top == '' else stack.replace(new_stack_top)
 
     def _has_accepted(self, current_configuration):
         """Check whether the given config indicates accepted input."""
@@ -71,12 +67,11 @@ class PDA(Automaton, metaclass=abc.ABCMeta):
         if current_configuration.remaining_input:
             return False
         if self.acceptance_mode in ('empty_stack', 'both'):
-            # If the stack is empty, we accept.
             if not current_configuration.stack:
                 return True
-        if self.acceptance_mode in ('final_state', 'both'):
             # If current state is a final state, we accept.
-            if current_configuration.state in self.final_states:
+        if current_configuration.state in self.final_states:
+            if self.acceptance_mode in ('final_state', 'both'):
                 return True
         # Otherwise, not.
         return False
